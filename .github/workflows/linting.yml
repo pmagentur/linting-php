@@ -4,9 +4,9 @@ on:
   workflow_call:
 
 jobs:
-  phpmd:
+  linting:
     runs-on: ubuntu-latest
-    name: phpmd
+    name: phpmd & phpDoctor
     steps:
       - name: Checkout the commit
         uses: actions/checkout@v3
@@ -27,8 +27,8 @@ jobs:
           repository: pmagentur/linting-php
           path: linting-php
 
-      - name: Linting
-        id: linter
+      - name: Linting with phpmd
+        id: linterPhpmd
         uses: pmagentur/linting-action@v0.2
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
@@ -37,39 +37,9 @@ jobs:
           parser-type: 'xml'
           annotation-parser: 'linting-php/phpmd/annotationParser.js'
 
-      - name: Add Annotations
-        uses: pmagentur/linting-annotations@v0.1
-        if: failure() && steps.linter.outputs.annotations != ''
-        with:
-          commitSha: ${{ github.event.pull_request.head.sha }}
-          checkName: 'PHP Linting'
-          annotations: ${{ steps.linter.outputs.annotations }}
-
-  phpdoctor:
-    runs-on: ubuntu-latest
-    name: phpdoctor
-    steps:
-      - name: Checkout the commit
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Get changed files from caller repository
-        id: changedFiles
-        uses: tj-actions/changed-files@v31
-        with:
-          sha: ${{ github.event.pull_request.head.sha }}
-          base_sha: ${{ github.event.pull_request.base.sha }}
-
-      # Needed to have access to the linter files
-      - name: Checkout this repository
-        uses: actions/checkout@v3
-        with:
-          repository: pmagentur/linting-php
-          path: linting-php
-
-      - name: Linting
-        id: linter
+      - name: Linting with phpDoctor
+        if: success() || failure()
+        id: linterPhpDoctor
         uses: pmagentur/linting-action@v0.2
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
@@ -77,11 +47,12 @@ jobs:
           relevant-file-endings: '["php"]'
           parser-type: 'custom'
           annotation-parser: 'linting-php/phpdoctor/annotationParser.js'
+          annotations: ${{ steps.linterPhpmd.outputs.annotations }}
 
       - name: Add Annotations
         uses: pmagentur/linting-annotations@v0.1
-        if: failure() && steps.linter.outputs.annotations != ''
+        if: failure() && steps.linterPhpDoctor.outputs.annotations != ''
         with:
           commitSha: ${{ github.event.pull_request.head.sha }}
           checkName: 'PHP Linting'
-          annotations: ${{ steps.linter.outputs.annotations }}
+          annotations: ${{ steps.linterPhpDoctor.outputs.annotations }}
