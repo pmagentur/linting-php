@@ -29,12 +29,13 @@ jobs:
 
       - name: Linting
         id: linter
-        uses: pmagentur/linting-action@v0.2a
+        uses: pmagentur/linting-action@v0.2
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
-          linter-command: "php linting-php/phpmd/phpmd.phar {files} text linting-php/phpmd/config.xml"
-          parse-pattern: '(?<file>[^,:]+):(?<line>\d+)\s+(?<message>.+)'
+          linter-command: "php linting-php/phpmd/phpmd.phar {files} checkstyle linting-php/phpmd/config.xml"
           relevant-file-endings: '["php"]'
+          parser-type: 'xml'
+          annotation-parser: 'linting-php/phpmd/annotationParser.js'
 
       - name: Add Annotations
         uses: pmagentur/linting-annotations@v0.1
