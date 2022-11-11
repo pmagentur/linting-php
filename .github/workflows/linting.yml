@@ -2,6 +2,13 @@ name: Pull Request checks
 
 on:
   workflow_call:
+    inputs:
+      configs-path:
+        description: 'Set this to override the linting configs with the ones in this folder. 
+        The structure inside of the folder must be the same as the one in this repository.'
+        required: false
+        type: string
+        default: '._linting' # Use the configs from this repository (separate checkout)
 
 jobs:
   linting:
@@ -15,7 +22,7 @@ jobs:
 
       - name: Get changed files from caller repository
         id: changedFiles
-        uses: tj-actions/changed-files@v31
+        uses: tj-actions/changed-files@v34
         with:
           sha: ${{ github.event.pull_request.head.sha }}
           base_sha: ${{ github.event.pull_request.base.sha }}
@@ -25,17 +32,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: pmagentur/linting-php
-          path: linting-php
+          path: ._linting
 
       - name: Linting with phpmd
         id: linterPhpmd
         uses: pmagentur/linting-action@v0.2
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
-          linter-command: "php linting-php/phpmd/phpmd.phar {files} checkstyle linting-php/phpmd/config.xml"
+          linter-command: "php ._linting/phpmd/phpmd.phar {files} checkstyle ${{ inputs.configs-path }}/phpmd/config.xml"
           relevant-file-endings: '["php"]'
           parser-type: 'xml'
-          annotation-parser: 'linting-php/phpmd/annotationParser.js'
+          annotation-parser: '._linting/phpmd/annotationParser.js'
 
       - name: Linting with phpDoctor
         if: success() || failure()
@@ -43,10 +50,10 @@ jobs:
         uses: pmagentur/linting-action@v0.2
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
-          linter-command: "php linting-php/phpdoctor/phpdoctor.phar analyse {files}"
+          linter-command: "php ._linting/phpdoctor/phpdoctor.phar analyse {files}"
           relevant-file-endings: '["php"]'
           parser-type: 'custom'
-          annotation-parser: 'linting-php/phpdoctor/annotationParser.js'
+          annotation-parser: '._linting/phpdoctor/annotationParser.js'
           annotations: ${{ steps.linterPhpmd.outputs.annotations }}
 
       - name: Add Annotations
