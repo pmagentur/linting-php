@@ -36,10 +36,11 @@ jobs:
 
       - name: Linting with phpmd
         id: linterPhpmd
-        uses: pmagentur/linting-action@v0.2
+        uses: pmagentur/linting-action@v0.3
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
           linter-command: "php ._linting/phpmd/phpmd.phar {files} checkstyle ${{ inputs.configs-path }}/phpmd/config.xml"
+          file-separator: ','
           relevant-file-endings: '["php"]'
           parser-type: 'xml'
           annotation-parser: '._linting/phpmd/annotationParser.js'
