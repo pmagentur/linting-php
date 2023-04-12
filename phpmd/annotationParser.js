@@ -3,6 +3,12 @@
  * @returns {{endLine: string, path: string, startLine: string, annotationLevel: string, message: string}[]}
  */
 const parseAnnotationsFromXml = function(xml) {
+    if (xml.checkstyle === undefined
+        || xml.checkstyle.file === undefined
+    ) {
+        return [];
+    }
+
     const files = Array.isArray(xml.checkstyle.file) ? xml.checkstyle.file : [xml.checkstyle.file];
 
     const annotations = [];
