@@ -9,6 +9,11 @@ on:
         required: false
         type: string
         default: '._linting' # Use the configs from this repository (separate checkout)
+      excluded-directories:
+        description: 'List of directories to exclude (JSON), empty = none'
+        required: false
+        type: string
+        default: '[]'
 
 jobs:
   linting:
@@ -36,7 +41,7 @@ jobs:
 
       - name: Linting with phpmd
         id: linterPhpmd
-        uses: pmagentur/linting-action@v0.3
+        uses: pmagentur/linting-action@v0.4
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
           linter-command: "php ._linting/phpmd/phpmd.phar {files} checkstyle ${{ inputs.configs-path }}/phpmd/config.xml"
@@ -44,11 +49,12 @@ jobs:
           relevant-file-endings: '["php"]'
           parser-type: 'xml'
           annotation-parser: '._linting/phpmd/annotationParser.js'
+          excluded-directories: ${{ inputs.excluded-directories }}
 
       - name: Linting with phpDoctor
         if: success() || failure()
         id: linterPhpDoctor
-        uses: pmagentur/linting-action@v0.2
+        uses: pmagentur/linting-action@v0.4
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
           linter-command: "php ._linting/phpdoctor/phpdoctor.phar analyse {files}"
@@ -56,6 +62,7 @@ jobs:
           parser-type: 'custom'
           annotation-parser: '._linting/phpdoctor/annotationParser.js'
           annotations: ${{ steps.linterPhpmd.outputs.annotations }}
+          excluded-directories: ${{ inputs.excluded-directories }}
 
       - name: Add Annotations
         uses: pmagentur/linting-annotations@v0.1
