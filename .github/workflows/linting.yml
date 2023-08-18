@@ -41,7 +41,7 @@ jobs:
 
       - name: Linting with phpmd
         id: linterPhpmd
-        uses: pmagentur/linting-action@v0.3
+        uses: pmagentur/linting-action@v0.4
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
           linter-command: "php ._linting/phpmd/phpmd.phar {files} checkstyle ${{ inputs.configs-path }}/phpmd/config.xml"
@@ -54,7 +54,7 @@ jobs:
       - name: Linting with phpDoctor
         if: success() || failure()
         id: linterPhpDoctor
-        uses: pmagentur/linting-action@v0.2
+        uses: pmagentur/linting-action@v0.4
         with:
           changed-files: ${{ steps.changedFiles.outputs.all_changed_files }}
           linter-command: "php ._linting/phpdoctor/phpdoctor.phar analyse {files}"
